@@ -8,9 +8,9 @@ const bcrypt = require("bcryptjs")
 
 function buildToken(user){ 
     const payload = {
-        user_id : user.user_id,
+        subject : user.user_id,
         username : user.username,
-        role : user.role_name
+        role_name : user.role_name
     }
     const options = {
         expiresIn : "1d"
@@ -22,13 +22,13 @@ function buildToken(user){
 router.post("/register", validateRoleName, (req, res, next) => {
     let user = req.body
 
-    const rounds = process.env.BCRYPT_ROUNDS || 8
-    const hash = bcrypt.hashSync(user.password, rounds)
-
+    const hash = bcrypt.hashSync(user.password)
+    console.log(hash)
     user.password = hash
+    
     Users.add(user)
         .then(newUser => {
-            res.status(201).json({message:`Welcome ${newUser}`})
+            res.status(201).json(newUser)
         })
         .catch(next)
   /**
@@ -53,7 +53,7 @@ router.post("/login", checkUsernameExists, (req, res, next) => {
             if(user && bcrypt.compareSync(password, user.password)){
                 const token = buildToken(user)
                 res.status(200).json({
-                    message: `Welcome back ${user.username}`,
+                    message: `${user.username} is back`,
                     token
                 })
             } else {
